@@ -1,0 +1,45 @@
+name: Deploy Netflix Database and Tables
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch name
+
+jobs:
+  deploy_staging:
+    name: Deploy to Staging
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Install SnowSQL
+      run: |
+        wget https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.10-linux_x86_64.bash
+        bash snowsql-1.2.10-linux_x86_64.bash
+        
+    - name: Run SQL script for Staging
+      run: |
+        snowsql -a <STAGING_ACCOUNT_NAME> -u <STAGING_USERNAME> -d <STAGING_DATABASE_NAME> -f path/to/your/sql_script.sql
+      env:
+        SNOWSQL_PWD: ${{ secrets.STAGING_SNOWSQL_PASSWORD }}
+
+  deploy_production:
+    name: Deploy to Production
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Install SnowSQL
+      run: |
+        wget https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.10-linux_x86_64.bash
+        bash snowsql-1.2.10-linux_x86_64.bash
+        
+    - name: Run SQL script for Production
+      run: |
+        snowsql -a <PRODUCTION_ACCOUNT_NAME> -u <PRODUCTION_USERNAME> -d <PRODUCTION_DATABASE_NAME> -f path/to/your/sql_script.sql
+      env:
+        SNOWSQL_PWD: ${{ secrets.PRODUCTION_SNOWSQL_PASSWORD }}
